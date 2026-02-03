@@ -11,12 +11,6 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh './gradlew clean build jacocoTestReport'
-            }
-        }
-
-        stage('Build & Test') {
-            steps {
                 sh 'chmod +x ./gradlew'
                 sh './gradlew clean build jacocoTestReport'
             }
