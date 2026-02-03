@@ -1,8 +1,17 @@
 pipeline {
     agent any
 
-    stages {
+    tools {
+        jdk 'JDK17'   // Replace with your configured JDK in Jenkins
+        gradle 'Gradle' // Replace with your configured Gradle in Jenkins
+    }
 
+    environment {
+        // If SonarQube requires a token, configure it as a Jenkins secret and reference it
+        SONAR_HOST_URL = 'http://localhost:9000'
+    }
+
+    stages {
         stage('Checkout') {
             steps {
                 checkout scm
@@ -11,7 +20,6 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh 'chmod +x ./gradlew'
                 sh './gradlew clean build jacocoTestReport'
             }
         }
@@ -19,15 +27,8 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh '''
-                      sonar-scanner \
-                      -Dsonar.projectKey=gradle-demo \
-                      -Dsonar.projectName=gradle-demo \
-                      -Dsonar.sources=src/main/java \
-                      -Dsonar.tests=src/test/java \
-                      -Dsonar.java.binaries=build/classes \
-                      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
-                    '''
+                    // Run SonarQube via Gradle plugin, not CLI
+                    sh './gradlew sonarqube'
                 }
             }
         }
@@ -41,7 +42,7 @@ pipeline {
 
     post {
         always {
-            junit 'build/test-results/test/*.xml'
+            junit '**/build/test-results/test/*.xml'
         }
     }
 }
