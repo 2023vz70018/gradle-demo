@@ -7,6 +7,12 @@ pipeline {
                 checkout scm
             }
         }
+        
+        stage('Set Gradle Wrapper Executable') {
+            steps {
+                sh 'chmod +x gradlew'
+            }
+        }
 
         stage('Build & Test') {
             steps {
