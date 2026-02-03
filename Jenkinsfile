@@ -1,23 +1,38 @@
 pipeline {
     agent any
 
+    environment {
+        SONAR_PROJECT_KEY = "gradle-demo"
+        SONAR_PROJECT_NAME = "gradle-demo"
+    }
+
     stages {
+
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
-        stage('Set Gradle Wrapper Executable') {
-            steps {
-                sh 'chmod +x gradlew'
-            }
-        }
 
         stage('Build & Test') {
             steps {
-                // Use Gradle wrapper (gradlew) in your repo
-                sh './gradlew clean build test jacocoTestReport'
+                sh '''
+                chmod +x gradlew
+                ./gradlew clean test jacocoTestReport
+                '''
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    ./gradlew sonar \
+                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                    -Dsonar.projectName=${SONAR_PROJECT_NAME} \
+                    -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+                    '''
+                }
             }
         }
 
@@ -34,3 +49,4 @@ pipeline {
         }
     }
 }
+
