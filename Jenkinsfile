@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    environment {
-        SONAR_PROJECT_KEY = "gradle-demo"
-        SONAR_PROJECT_NAME = "gradle-demo"
+    tools {
+        jdk 'JDK17'
+        gradle 'Gradle'
     }
 
     stages {
@@ -16,10 +16,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh '''
-                chmod +x gradlew
-                ./gradlew clean test jacocoTestReport
-                '''
+                sh './gradlew clean build jacocoTestReport'
             }
         }
 
@@ -27,10 +24,13 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                    ./gradlew sonar \
-                    -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                    -Dsonar.projectName=${SONAR_PROJECT_NAME} \
-                    -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+                      sonar-scanner \
+                      -Dsonar.projectKey=gradle-demo \
+                      -Dsonar.projectName=gradle-demo \
+                      -Dsonar.sources=src/main/java \
+                      -Dsonar.tests=src/test/java \
+                      -Dsonar.java.binaries=build/classes \
+                      -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
                     '''
                 }
             }
@@ -45,8 +45,7 @@ pipeline {
 
     post {
         always {
-            junit '**/build/test-results/test/*.xml'
+            junit 'build/test-results/test/*.xml'
         }
     }
 }
-
