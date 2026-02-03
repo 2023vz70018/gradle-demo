@@ -15,6 +15,13 @@ pipeline {
             }
         }
 
+        stage('Build & Test') {
+            steps {
+                sh 'chmod +x ./gradlew'
+                sh './gradlew clean build jacocoTestReport'
+            }
+        }
+
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
